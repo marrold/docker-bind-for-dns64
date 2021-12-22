@@ -1,0 +1,49 @@
+#!/usr/bin/with-contenv bash
+
+echo 'Creating bind directories'
+mkdir -p /var/bind
+mkdir -p /var/run/named
+
+echo "Building named.conf"
+jinja2 \
+  -D max_cache_size=$BIND_MAX_CACHE \
+  -D listen_port=$BIND_LISTEN_PORT \
+  -D listen_ipv4=$BIND_LISTEN_IPV4 \
+  -D listen_ipv6=$BIND_LISTEN_IPV6 \
+  -D query_acl=$BIND_QUERY_ACL \
+  -D nat64_translator_acl=$BIND_NAT64_TRANSLATOR_ACL \
+  -D forwarders=$BIND_FORWARDERS \
+  -D nat64_prefix=$BIND_NAT64_PREFIX \
+  /etc/bind/named.conf.j2 > /etc/bind/named.conf
+
+echo 'Building rndc.key'
+if [ -n "$BIND_RNDC_KEY_ALGORITHM" ] && [ -n "$BIND_RNDC_KEY_SECRET" ]; then
+echo 'rndc-key environment variables are defined, building rndc.key with template'
+  jinja2 \
+    -D rndc_key_algorithm=$BIND_RNDC_KEY_ALGORITHM \
+    -D rndc_key_secret=$BIND_RNDC_KEY_SECRET \
+    /etc/bind/rndc.key.j2 > /etc/bind/rndc.key
+elif [ ! -f "/etc/bind/rndc.key" ]; then
+  echo 'rndc-key environment variables are not defined, building rndc.key with rndc-confgen'
+  rndc-confgen -a
+else
+  echo 'rndc.key already exists'
+fi
+
+echo 'Building /etc/rndc.conf'
+cp /etc/bind/rndc.key /etc/rndc.conf
+
+cat <<EOT >> /etc/rndc.conf
+
+options {
+        default-key "rndc-key";
+        default-server 127.0.0.1;
+        default-port 953;
+};
+EOT
+
+echo 'Fixing bind permissions'
+chown -R abc:abc /etc/bind
+chown abc:abc /etc/bind/named.conf
+chown -R abc:abc /var/bind
+chown -R abc:abc /var/run/named/

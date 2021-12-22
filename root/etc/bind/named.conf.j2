@@ -1,0 +1,71 @@
+// named.conf, built using environment variables initated in docker-compose.yaml and built with jinja2
+
+include "/etc/bind/rndc.key";
+
+{% set query_acl = query_acl.split(',') -%}
+acl query_acl {
+{%- for network in query_acl %}
+    {{ network }};
+{%- endfor %}
+};
+
+{% set nat64_translator_acl = nat64_translator_acl.split(',') -%}
+acl nat64_translator_acl {
+{%- for network in nat64_translator_acl %}
+    {{ network }};
+{%- endfor %}
+};
+
+controls {
+    inet 127.0.0.1 allow { localhost; } keys { "rndc-key"; };
+};
+
+logging { 
+    category default {
+        default_stderr;
+    };
+    category queries {
+        default_stderr;
+    };
+    category security {
+        default_stderr;
+    };
+    category client {
+        default_stderr;
+    };
+};
+
+options {
+	directory "/var/bind";
+
+        max-cache-size {{ max_cache_size if max_cache_size is defined else "100m" }};
+
+	listen-on port {{ listen_port }} { {{ listen_ipv4 }}; };
+	listen-on-v6 port {{ listen_port }} { {{ listen_ipv6 }}; };
+
+	pid-file "/var/run/named/named.pid";
+
+	allow-recursion { query_acl; };
+	recursion yes;
+
+        allow-query { query_acl; };
+
+	forwarders {
+            {%- set forwarders = forwarders.split(',') -%}
+            {%- for forwarder in forwarders %}
+                {% if ':' in forwarder -%}
+                {{ forwarder.split(':')[0] }} port {{ forwarder.split(':')[1] }};
+                {%- else -%}
+                {{ forwarder }} port 53;
+                {%- endif -%}
+            {% endfor %}
+        };
+        forward only;
+
+	dns64 {{ nat64_prefix }} {
+              # We exclude known NAT64 translators from DNS64, as it can cause issues, and they're dual stack
+              clients { !nat64_translator_acl; query_acl; };
+	};
+
+};
+

@@ -1,0 +1,26 @@
+---
+version: "2.1"
+
+services:
+  bind-for-dns64:
+    image: marrold/docker-bind-for-dns64:latest
+    container_name: bind-for-dns64
+    environment:
+      - PUID=5000
+      - PGID=5000
+      - TZ=Europe/London
+      - BIND_MAX_CACHE=128m
+      - BIND_LISTEN_PORT=53 
+      - BIND_LISTEN_IPV4=any
+      - BIND_LISTEN_IPV6=none
+      - BIND_QUERY_ACL=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+      - BIND_NAT64_TRANSLATOR_ACL=localhost
+      - BIND_FORWARDERS=1.1.1.1,1.0.0.1
+      - BIND_NAT64_PREFIX=64:ff9b::/96
+      - BIND_RNDC_KEY_ALGORITHM=hmac-sha256
+      - BIND_RNDC_KEY_SECRET=6fhrUJQZBtj+pfwtWBrcOz6iqQiXPVwES4YwYcWzNys=
+    ports:
+      - 53:53/tcp
+      - 53:53/udp
+    restart: unless-stopped
+
