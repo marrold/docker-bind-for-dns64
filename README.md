@@ -42,7 +42,7 @@ It's available on Docker Hub [Here](https://hub.docker.com/repository/docker/mar
 #### Environment Variables
 
  | **Var** | **Usage** | **Example** | **Optional**
- |-|-|-|-|-|
+ |-|-|-|-|
  | `PUID` | User ID to use inside the container | 5000 | Y |
  | `PGID` | Group ID to use inside the container | 5000 | Y |
  | `TZ` | Timezone to use inside the container | BIND_TRANSFER_KEY_SECRET | Y |
@@ -53,7 +53,7 @@ It's available on Docker Hub [Here](https://hub.docker.com/repository/docker/mar
  | `BIND_QUERY_ACL` | The subnet(s) to allow queries from. It should be a comma separated list without spaces. | 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16 | N |
  | `BIND_NAT64_TRANSLATOR_ACL` | The subnet(s) containing NAT64 translators that we want to prevent from receiving DNS64 replies. It should be a comma separated list without spaces. | 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16 | N |
  | `BIND_FORWARDERS` | The forwarder(s) to forward requests to. It should be a comma separated list without spaces.  | 1.1.1.1,1.0.0.1 | N |
- |`BIND_NAT64_PREFIX` | The IPv6 prefix you're using for NAT64 translation | 64:ff9b::/96 | N |
+ | `BIND_NAT64_PREFIX` | The IPv6 prefix you're using for NAT64 translation | 64:ff9b::/96 | N |
  | `BIND_RNDC_KEY_ALGORITHM` | The algorithm used for the RNDC key. (For adminstrating BIND with the rndc tool) | hmac-sha256 | Y |
  | `BIND_RNDC_KEY_SECRET` | The secret used for the RNDC key. (For adminstrating BIND with the rndc tool) | u/ULUGT0p7GPnpXYEVkWztv3fKi5hURD9PyJnvqMhZQ= | Y |
 
