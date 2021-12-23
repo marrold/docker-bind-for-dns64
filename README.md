@@ -8,6 +8,7 @@ It's available on Docker Hub [Here](https://hub.docker.com/repository/docker/mar
 ## Caveats
 
 - There's currently no validation to ensure that environment variables are included and correct. This can result in a broken named.conf and BIND will refuse to start.
+- Bind runs as root, with host networking and privileged=true. This is bad practice, but is required to listen on privileged ports.
 - I've not tested this in a high load, production type environment
 
 ## Usage
@@ -34,17 +35,18 @@ It's available on Docker Hub [Here](https://hub.docker.com/repository/docker/mar
           - BIND_NAT64_PREFIX=64:ff9b::/96
           - BIND_RNDC_KEY_ALGORITHM=hmac-sha256
           - BIND_RNDC_KEY_SECRET=u/ULUGT0p7GPnpXYEVkWztv3fKi5hURD9PyJnvqMhZQ=
-        ports:
-          - 53:53/tcp
-          - 53:53/udp
+        network_mode: host
+        privileged: true
+        cap_add:
+          - NET_BIND_SERVICE
         restart: unless-stopped
 
 #### Environment Variables
 
  | **Var** | **Usage** | **Example** | **Optional**
  |-|-|-|-|
- | `PUID` | User ID to use inside the container | 5000 | Y |
- | `PGID` | Group ID to use inside the container | 5000 | Y |
+ | `PUID` | User ID to use inside the container. Has no effect on bind | 5000 | N |
+ | `PGID` | Group ID to use inside the container. Has no effect on bind | 5000 | N |
  | `TZ` | Timezone to use inside the container | BIND_TRANSFER_KEY_SECRET | Y |
  | `BIND_MAX_CACHE` | Maximum size for cached DNS records | 128m |  Y |
  | `BIND_LISTEN_PORT` | Port to listen on | 53 | N |
